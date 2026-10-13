@@ -21,8 +21,6 @@ import {
   Search,
   Printer,
   RotateCcw,
-  Briefcase,
-  GraduationCap
 } from "lucide-react";
 
 interface RoleOption {
@@ -51,6 +49,75 @@ const STEPS: StepItem[] = [
   { id: "role", label: "Target Role", description: "Benchmark or custom JD" },
   { id: "results", label: "Readiness Intelligence", description: "Score, gaps & roadmap" },
 ];
+
+// Inline sub-component: resume text paste
+function ResumeTextPaste({
+  onSkillsExtracted,
+}: {
+  onSkillsExtracted: (skills: UserSkill[]) => void;
+}) {
+  const { toast } = useToast();
+  const [text, setText] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  const handleAnalyze = async () => {
+    if (text.trim().length < 20) {
+      toast({ type: "error", title: "Too Short", description: "Please paste at least 20 characters of resume text." });
+      return;
+    }
+    setLoading(true);
+    try {
+      const res = await fetch("/api/profile/upload", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ text: text.trim() }),
+      });
+      const data = await res.json();
+      if (res.ok && data.extractedSkills && data.extractedSkills.length > 0) {
+        const parsed: UserSkill[] = data.extractedSkills.map(
+          (s: { name: string; proficiency?: number; evidenceType?: string }) => ({
+            skillName: s.name,
+            proficiency: s.proficiency || 3,
+            evidenceType: (s.evidenceType as UserSkill["evidenceType"]) || "PROJECT",
+          })
+        );
+        onSkillsExtracted(parsed);
+        setText("");
+        toast({
+          type: "success",
+          title: "Skills Extracted",
+          description: `${parsed.length} competencies extracted from pasted text`,
+        });
+      } else {
+        toast({ type: "error", title: "Extraction Failed", description: data.error || "Could not extract skills from text." });
+      }
+    } catch {
+      toast({ type: "error", title: "Network Error", description: "Failed to reach analysis server." });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="space-y-3">
+      <textarea
+        rows={5}
+        value={text}
+        onChange={(e) => setText(e.target.value)}
+        placeholder="Paste your resume content here — e.g. work experience, skills section, certifications..."
+        className="control-input font-mono text-xs p-3 leading-relaxed w-full"
+      />
+      <button
+        type="button"
+        disabled={loading || text.trim().length < 20}
+        onClick={handleAnalyze}
+        className="btn-primary text-xs px-5"
+      >
+        {loading ? "Extracting Skills..." : "Extract Skills from Text →"}
+      </button>
+    </div>
+  );
+}
 
 export default function DashboardPage() {
   return (
@@ -246,10 +313,10 @@ function DashboardContent() {
       });
       const data = await res.json();
       if (res.ok && data.extractedSkills) {
-        const parsed: UserSkill[] = data.extractedSkills.map((s: { name: string; proficiency?: number }) => ({
+        const parsed: UserSkill[] = data.extractedSkills.map((s: { name: string; proficiency?: number; evidenceType?: string }) => ({
           skillName: s.name,
           proficiency: s.proficiency || 3,
-          evidenceType: "PROJECT",
+          evidenceType: (s.evidenceType as UserSkill["evidenceType"]) || "PROJECT",
         }));
         setSkills(parsed);
         toast({
@@ -460,61 +527,15 @@ function DashboardContent() {
         {/* ── STEP 1: CANDIDATE PROFILE INTAKE ── */}
         {currentStepIndex === 0 && (
           <div className="space-y-6 animate-step-transition">
-            {/* Try a Sample Profile Cards */}
+            {/* Page Title */}
             <div className="card p-5 bg-surface-subtle/50">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-3">
-                <div>
-                  <h2 className="text-xs font-bold uppercase tracking-wider text-muted">
-                    Try a Sample Profile
-                  </h2>
-                  <p className="text-xs text-muted mt-0.5">
-                    Pre-populate competencies to test the scoring engine instantly
-                  </p>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <button
-                  type="button"
-                  onClick={loadAlexProfile}
-                  className="p-3.5 rounded-card bg-surface border border-border hover:border-primary text-left transition flex items-center justify-between group cursor-pointer"
-                >
-                  <div className="flex items-center gap-3">
-                    <div className="w-9 h-9 rounded-control bg-primary/10 text-primary flex items-center justify-center shrink-0">
-                      <GraduationCap className="w-4 h-4" />
-                    </div>
-                    <div>
-                      <div className="text-xs font-semibold text-ink group-hover:text-primary transition">
-                        Alex Chen
-                      </div>
-                      <span className="text-[11px] text-muted block">
-                        CS Graduate · Target: Frontend Developer
-                      </span>
-                    </div>
-                  </div>
-                  <Chip variant="neutral" className="text-[10px]">9 skills</Chip>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={loadJordanProfile}
-                  className="p-3.5 rounded-card bg-surface border border-border hover:border-primary text-left transition flex items-center justify-between group cursor-pointer"
-                >
-                  <div className="flex items-center gap-3">
-                    <div className="w-9 h-9 rounded-control bg-primary/10 text-primary flex items-center justify-center shrink-0">
-                      <Briefcase className="w-4 h-4" />
-                    </div>
-                    <div>
-                      <div className="text-xs font-semibold text-ink group-hover:text-primary transition">
-                        Jordan Kim
-                      </div>
-                      <span className="text-[11px] text-muted block">
-                        Career Switcher · Target: Data Analyst
-                      </span>
-                    </div>
-                  </div>
-                  <Chip variant="neutral" className="text-[10px]">7 skills</Chip>
-                </button>
+              <div>
+                <h2 className="text-base font-bold text-ink">
+                  Step 1 — Candidate Profile
+                </h2>
+                <p className="text-xs text-muted mt-0.5">
+                  Upload your resume or manually enter your competencies below. The engine extracts skills, proficiency, and evidence type automatically.
+                </p>
               </div>
             </div>
 
@@ -537,7 +558,7 @@ function DashboardContent() {
               <input
                 type="file"
                 id="resume-upload-input"
-                accept=".pdf,.docx"
+                accept=".pdf,.docx,.txt,.md"
                 className="hidden"
                 onChange={(e) => {
                   const file = e.target.files?.[0];
@@ -553,10 +574,10 @@ function DashboardContent() {
                 </div>
                 <div>
                   <span className="font-semibold text-sm text-ink block">
-                    Upload your resume (PDF or DOCX)
+                    Upload your resume (PDF, DOCX, TXT, MD)
                   </span>
                   <span className="text-xs text-muted mt-1 block">
-                    Server extracts skills, experience levels, and certifications
+                    Server extracts skills, proficiency levels, and certifications automatically
                   </span>
                 </div>
 
@@ -573,6 +594,20 @@ function DashboardContent() {
                   </span>
                 )}
               </label>
+            </div>
+
+            {/* Resume Text Paste Fallback */}
+            <div className="card p-5 space-y-3">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="text-sm font-semibold text-ink">Or Paste Resume Text</h3>
+                  <p className="text-xs text-muted mt-0.5">Copy-paste your resume content directly — no file upload needed</p>
+                </div>
+              </div>
+              <ResumeTextPaste onSkillsExtracted={(extracted) => {
+                setSkills(extracted);
+                setUploadedFileName("pasted-resume.txt");
+              }} />
             </div>
 
             {/* Competency Editor Table */}

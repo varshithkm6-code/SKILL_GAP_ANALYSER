@@ -1,11 +1,12 @@
 import type { Metadata, Viewport } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Inter, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { Providers } from "@/components/layout/providers";
 
-const geistSans = Geist({
+const inter = Inter({
   subsets: ["latin"],
-  variable: "--font-geist-sans",
+  variable: "--font-inter",
+  display: "swap",
 });
 
 const geistMono = Geist_Mono({
@@ -61,7 +62,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} font-sans antialiased text-ink bg-canvas selection:bg-primary-subtle selection:text-primary`}
+        className={`${inter.variable} ${geistMono.variable} font-sans antialiased text-ink bg-canvas selection:bg-primary-subtle selection:text-primary`}
       >
         <Providers>{children}</Providers>
       </body>

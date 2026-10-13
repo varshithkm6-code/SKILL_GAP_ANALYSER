@@ -2,6 +2,7 @@
 // Used in tests and when GEMINI_API_KEY is not set.
 // Returns deterministic, schema-valid responses.
 import type { AIProvider, InsightResult, ExtractedRole, ParsedResume } from "./types";
+import { extractSkillsAndDataFromText } from "@/ingestion/skill-extractor";
 
 export class MockProvider implements AIProvider {
   async generateInsights(
@@ -74,19 +75,6 @@ export class MockProvider implements AIProvider {
   }
 
   async parseResume(resumeText: string): Promise<ParsedResume> {
-    // Minimal mock: extract skill-like words
-    const words = resumeText.split(/\s+/);
-    const techWords = ["Python", "JavaScript", "TypeScript", "React", "Node.js", "SQL", "Git", "Docker", "AWS"];
-    const foundSkills = techWords
-      .filter((t) => words.some((w) => w.toLowerCase().includes(t.toLowerCase())))
-      .map((name) => ({ name, proficiency: 3 as const, evidenceType: "SELF_RATED" as const }));
-
-    return {
-      education: [{ degree: "Bachelor's", field: "Computer Science" }],
-      experience: [],
-      skills: foundSkills.length > 0 ? foundSkills : [{ name: "JavaScript", proficiency: 3, evidenceType: "SELF_RATED" }],
-      certifications: [],
-      projects: [],
-    };
+    return extractSkillsAndDataFromText(resumeText);
   }
 }

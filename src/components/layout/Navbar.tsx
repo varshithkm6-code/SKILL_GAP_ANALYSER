@@ -6,7 +6,7 @@ import { usePathname } from "next/navigation";
 import { signOut, useSession } from "next-auth/react";
 import { Chip } from "@/components/ui/Chip";
 import { SettingsModal } from "@/components/layout/SettingsModal";
-import { LogOut, Compass, History, Users, BarChart3, Menu, X, Settings } from "lucide-react";
+import { LogOut, Compass, History, Users, BarChart3, Menu, X, Settings, BookOpen, Wrench, FileText, PlayCircle, Building2 } from "lucide-react";
 
 export function Navbar() {
   const pathname = usePathname();
@@ -19,7 +19,12 @@ export function Navbar() {
 
   const navItems = [
     { label: "Assess", href: "/dashboard", icon: <BarChart3 className="w-4 h-4" /> },
-    { label: "Roles", href: "/roles", icon: <Compass className="w-4 h-4" /> },
+    { label: "Courses", href: "/courses", icon: <BookOpen className="w-4 h-4" /> },
+    { label: "Guides", href: "/career-guides", icon: <Compass className="w-4 h-4" /> },
+    { label: "Gov. Programs", href: "/government-skill-programs", icon: <Building2 className="w-4 h-4" /> },
+    { label: "Tools", href: "/tools", icon: <Wrench className="w-4 h-4" /> },
+    { label: "Resume Builder", href: "/tools/resume-builder", icon: <FileText className="w-4 h-4" /> },
+    { label: "Demo", href: "/webdemo", icon: <PlayCircle className="w-4 h-4" /> },
     { label: "History", href: "/history", icon: <History className="w-4 h-4" /> },
     ...(isCounselor ? [{ label: "Counselor", href: "/counselor", icon: <Users className="w-4 h-4" /> }] : []),
   ];
