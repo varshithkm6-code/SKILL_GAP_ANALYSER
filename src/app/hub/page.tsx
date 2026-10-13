@@ -7,7 +7,7 @@ import { Navbar } from "@/components/layout/Navbar";
 import {
   BarChart3, BookOpen, Compass, Wrench, FileText,
   PlayCircle, Building2, History, ArrowRight, Sparkles,
-  Target, TrendingUp, Star,
+  Target, TrendingUp, Star, User, MessageSquare, Newspaper,
 } from "lucide-react";
 
 const FEATURES = [
@@ -16,6 +16,24 @@ const FEATURES = [
     badge: "Core Tool", title: "Skill Gap Analyzer",
     description: "Upload your resume, pick a target role, and get a deterministic Career Readiness Score with a 30/60/90-day roadmap.",
     cta: "Start Assessment", highlight: true,
+  },
+  {
+    href: "/profile", icon: "User", color: "#6366F1", bgColor: "rgba(99,102,241,0.08)",
+    badge: "Profile", title: "My Profile & Skills",
+    description: "Manage your candidate details, star-rated competencies, evidence reliability tiers, and readiness metrics.",
+    cta: "View Profile", highlight: false,
+  },
+  {
+    href: "/blog", icon: "Newspaper", color: "#EC4899", bgColor: "rgba(236,72,153,0.08)",
+    badge: "Community", title: "Community Feed & Posts",
+    description: "Browse insights, like articles, share career advice, and comment on industry trends with other jobseekers.",
+    cta: "Explore Feed", highlight: false,
+  },
+  {
+    href: "/messages", icon: "MessageSquare", color: "#10B981", bgColor: "rgba(16,185,129,0.08)",
+    badge: "Advising", title: "Counselor Messages",
+    description: "Connect directly with academic advisors for resume reviews, role guidance, and learning roadmap questions.",
+    cta: "Open Messages", highlight: false,
   },
   {
     href: "/courses", icon: "BookOpen", color: "#0EA5E9", bgColor: "rgba(14,165,233,0.08)",
@@ -68,7 +86,7 @@ export default async function HubPage() {
   const firstName = user?.name?.split(" ")[0] || "there";
 
   const iconMap: Record<string, React.ComponentType<{ className?: string; style?: React.CSSProperties }>> = {
-    BarChart3, BookOpen, Compass, Wrench, FileText, PlayCircle, Building2, History,
+    BarChart3, BookOpen, Compass, Wrench, FileText, PlayCircle, Building2, History, User, MessageSquare, Newspaper,
   };
 
   return (

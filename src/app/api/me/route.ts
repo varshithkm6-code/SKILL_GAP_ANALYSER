@@ -26,6 +26,37 @@ export async function GET() {
   return NextResponse.json({ user });
 }
 
+export async function PATCH(req: Request) {
+  const session = await auth();
+  if (!session?.user?.id) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  try {
+    const body = await req.json();
+    const { name } = body;
+
+    const user = await prisma.user.update({
+      where: { id: session.user.id },
+      data: {
+        name: typeof name === "string" ? name.trim() : undefined,
+      },
+      select: {
+        id: true,
+        email: true,
+        name: true,
+        role: true,
+        createdAt: true,
+      },
+    });
+
+    return NextResponse.json({ user });
+  } catch (err) {
+    console.error("Failed to update user:", err);
+    return NextResponse.json({ error: "Failed to update profile." }, { status: 500 });
+  }
+}
+
 export async function DELETE() {
   const session = await auth();
   if (!session?.user?.id) {

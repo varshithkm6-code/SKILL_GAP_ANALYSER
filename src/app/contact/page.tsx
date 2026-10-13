@@ -16,9 +16,20 @@ export default function ContactPage() {
     message: "",
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.name || !formData.email || !formData.message) return;
+    try {
+      await fetch("/api/messages", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          text: `[Contact Inquiry - ${formData.topic}] From ${formData.name} (${formData.email}): ${formData.message}`,
+        }),
+      });
+    } catch {
+      // Proceed even if unauthenticated
+    }
     setSubmitted(true);
   };
 

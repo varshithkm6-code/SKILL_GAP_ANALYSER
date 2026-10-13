@@ -56,7 +56,8 @@ function LoginForm() {
       if (res?.error) {
         setError("Invalid email or password. Please try again.");
       } else {
-        router.push("/hub");
+        const callbackUrl = searchParams.get("callbackUrl");
+        router.push(callbackUrl && callbackUrl.startsWith("/") ? callbackUrl : "/hub");
         router.refresh();
       }
     } catch {

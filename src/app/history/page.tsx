@@ -13,7 +13,8 @@ import {
   Tooltip,
   ResponsiveContainer
 } from "recharts";
-import { BarChart3, ArrowRight } from "lucide-react";
+import { useSession } from "next-auth/react";
+import { BarChart3, ArrowRight, Lock } from "lucide-react";
 
 interface HistoryItem {
   id: string;
@@ -32,12 +33,16 @@ interface HistoryItem {
 }
 
 export default function HistoryPage() {
+  const { data: session, status } = useSession();
   const [analyses, setAnalyses] = useState<HistoryItem[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     fetch("/api/history")
-      .then((res) => res.json())
+      .then((res) => {
+        if (!res.ok) throw new Error("Unauthorized");
+        return res.json();
+      })
       .then((data) => {
         if (data.analyses) setAnalyses(data.analyses);
       })
@@ -88,6 +93,22 @@ export default function HistoryPage() {
         {loading ? (
           <div className="text-center py-20 text-muted text-xs">
             Loading assessment history...
+          </div>
+        ) : status === "unauthenticated" || (!session && analyses.length === 0) ? (
+          <div className="card p-12 text-center text-muted space-y-3">
+            <div className="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center mx-auto text-primary">
+              <Lock className="w-6 h-6" />
+            </div>
+            <h3 className="font-semibold text-ink text-base">Sign In Required to View History</h3>
+            <p className="text-xs text-muted max-w-sm mx-auto leading-relaxed">
+              Assessment records and milestone progress are securely linked to your account. Sign in or create a free account to track your readiness trajectory.
+            </p>
+            <div className="pt-2 flex items-center justify-center gap-3">
+              <Link href="/login?callbackUrl=/history" className="btn-primary text-xs px-5 py-2.5 inline-flex items-center gap-1.5">
+                <span>Sign In to View History</span>
+                <ArrowRight className="w-3.5 h-3.5" />
+              </Link>
+            </div>
           </div>
         ) : analyses.length === 0 ? (
           <div className="card p-12 text-center text-muted space-y-3">

@@ -6,7 +6,7 @@ import { usePathname } from "next/navigation";
 import { signOut, useSession } from "next-auth/react";
 import { Chip } from "@/components/ui/Chip";
 import { SettingsModal } from "@/components/layout/SettingsModal";
-import { LogOut, Compass, History, Users, BarChart3, Menu, X, Settings, BookOpen, Wrench, FileText, PlayCircle, Building2 } from "lucide-react";
+import { LogOut, Compass, History, Users, BarChart3, Menu, X, Settings, BookOpen, Wrench, FileText, PlayCircle, Building2, User, MessageSquare, Newspaper } from "lucide-react";
 
 export function Navbar() {
   const pathname = usePathname();
@@ -19,6 +19,8 @@ export function Navbar() {
 
   const navItems = [
     { label: "Assess", href: "/dashboard", icon: <BarChart3 className="w-4 h-4" /> },
+    { label: "Community", href: "/blog", icon: <Newspaper className="w-4 h-4" /> },
+    { label: "Messages", href: "/messages", icon: <MessageSquare className="w-4 h-4" /> },
     { label: "Courses", href: "/courses", icon: <BookOpen className="w-4 h-4" /> },
     { label: "Guides", href: "/career-guides", icon: <Compass className="w-4 h-4" /> },
     { label: "Gov. Programs", href: "/government-skill-programs", icon: <Building2 className="w-4 h-4" /> },
@@ -75,19 +77,28 @@ export function Navbar() {
           <div className="hidden md:flex items-center gap-3">
             {user ? (
               <div className="flex items-center gap-2.5">
-                <div className="flex flex-col items-end text-right mr-1">
-                  <span className="text-xs font-semibold text-ink leading-tight">
-                    {user.name || user.email}
-                  </span>
-                  <span className="text-[10px] text-muted mt-0.5">
-                    <Chip
-                      variant={isCounselor ? "strong" : "neutral"}
-                      className="py-0 px-2 text-[10px] uppercase font-mono tracking-wider"
-                    >
-                      {user.role}
-                    </Chip>
-                  </span>
-                </div>
+                <Link
+                  href="/profile"
+                  className="flex items-center gap-2 mr-1 py-1 px-2 rounded-lg hover:bg-surface-subtle transition"
+                  title="View Profile"
+                >
+                  <div className="w-8 h-8 rounded-full bg-primary/10 text-primary flex items-center justify-center font-bold text-xs shrink-0 border border-primary/20">
+                    <User className="w-4 h-4" />
+                  </div>
+                  <div className="flex flex-col items-start text-left">
+                    <span className="text-xs font-semibold text-ink group-hover:text-primary transition leading-tight">
+                      {user.name || user.email?.split("@")[0]}
+                    </span>
+                    <span className="text-[10px] text-muted mt-0.5">
+                      <Chip
+                        variant={isCounselor ? "strong" : "neutral"}
+                        className="py-0 px-1.5 text-[9px] uppercase font-mono tracking-wider"
+                      >
+                        {user.role}
+                      </Chip>
+                    </span>
+                  </div>
+                </Link>
                 <button
                   type="button"
                   onClick={() => setSettingsOpen(true)}
@@ -171,7 +182,15 @@ export function Navbar() {
                       {user.role}
                     </Chip>
                   </div>
-                  <div className="grid grid-cols-2 gap-2">
+                  <div className="grid grid-cols-3 gap-2">
+                    <Link
+                      href="/profile"
+                      onClick={() => setMobileMenuOpen(false)}
+                      className="btn-secondary text-xs h-10 gap-1.5 justify-center"
+                    >
+                      <User className="w-3.5 h-3.5 text-muted" />
+                      <span>Profile</span>
+                    </Link>
                     <button
                       type="button"
                       onClick={() => {

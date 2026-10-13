@@ -13,7 +13,9 @@ import {
   Tooltip,
   ResponsiveContainer
 } from "recharts";
-import { Users, AlertCircle } from "lucide-react";
+import Link from "next/link";
+import { useSession } from "next-auth/react";
+import { Users, AlertCircle, ShieldAlert, ArrowRight } from "lucide-react";
 
 interface StudentData {
   id: string;
@@ -43,12 +45,21 @@ interface StudentData {
 }
 
 export default function CounselorPage() {
+  const { data: session, status } = useSession();
   const [students, setStudents] = useState<StudentData[]>([]);
   const [selectedStudent, setSelectedStudent] = useState<StudentData | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [isUnauthorized, setIsUnauthorized] = useState(false);
 
   useEffect(() => {
     fetch("/api/counselor/cohort")
-      .then((res) => res.json())
+      .then((res) => {
+        if (!res.ok) {
+          setIsUnauthorized(true);
+          throw new Error("Unauthorized");
+        }
+        return res.json();
+      })
       .then((data) => {
         if (data.students) {
           setStudents(data.students);
@@ -58,7 +69,7 @@ export default function CounselorPage() {
         }
       })
       .catch((err) => console.error(err))
-      .finally(() => { /* done */ });
+      .finally(() => setLoading(false));
   }, []);
 
   const totalStudents = students.length;
@@ -126,30 +137,51 @@ export default function CounselorPage() {
           </div>
 
           {/* KPI Tiles */}
-          <div className="mt-6 grid grid-cols-2 sm:grid-cols-4 gap-3.5">
-            <Stat
-              label="Total Advisees"
-              value={totalStudents}
-              sublabel="Enrolled in cohort"
-              icon={<Users className="w-4 h-4 text-primary" />}
-            />
-            <Stat
-              label="Cohort Avg Score"
-              value={isCohortSufficient ? `${avgScore}/100` : "Not enough data"}
-              sublabel={isCohortSufficient ? "Across active assessments" : "Cohort < 5 students"}
-            />
-            <Stat
-              label="Job-Ready (75+)"
-              value={isCohortSufficient ? readyCount : "Not enough data"}
-              sublabel={isCohortSufficient ? `${Math.round((readyCount / Math.max(1, totalStudents)) * 100)}% of cohort` : "Cohort < 5 students"}
-            />
-            <Stat
-              label="At-Risk (<50)"
-              value={isCohortSufficient ? atRiskCount : "Not enough data"}
-              sublabel={isCohortSufficient ? "Requires intervention" : "Cohort < 5 students"}
-            />
-          </div>
+          {!isUnauthorized && status !== "unauthenticated" && (
+            <div className="mt-6 grid grid-cols-2 sm:grid-cols-4 gap-3.5">
+              <Stat
+                label="Total Advisees"
+                value={totalStudents}
+                sublabel="Enrolled in cohort"
+                icon={<Users className="w-4 h-4 text-primary" />}
+              />
+              <Stat
+                label="Cohort Avg Score"
+                value={isCohortSufficient ? `${avgScore}/100` : "Not enough data"}
+                sublabel={isCohortSufficient ? "Across active assessments" : "Cohort < 5 students"}
+              />
+              <Stat
+                label="Job-Ready (75+)"
+                value={isCohortSufficient ? readyCount : "Not enough data"}
+                sublabel={isCohortSufficient ? `${Math.round((readyCount / Math.max(1, totalStudents)) * 100)}% of cohort` : "Cohort < 5 students"}
+              />
+              <Stat
+                label="At-Risk (<50)"
+                value={isCohortSufficient ? atRiskCount : "Not enough data"}
+                sublabel={isCohortSufficient ? "Requires intervention" : "Cohort < 5 students"}
+              />
+            </div>
+          )}
         </div>
+
+        {isUnauthorized || status === "unauthenticated" ? (
+          <div className="card p-12 text-center text-muted space-y-4">
+            <div className="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center mx-auto text-primary">
+              <ShieldAlert className="w-6 h-6" />
+            </div>
+            <h3 className="font-semibold text-ink text-base">Academic Counselor Access Required</h3>
+            <p className="text-xs text-muted max-w-md mx-auto leading-relaxed">
+              This cohort dashboard is restricted to academic advisors and career counselors. Sign in with the pre-seeded advisor account (<span className="font-mono text-ink">counselor@demo.skillbridge.dev</span>) to inspect cohort readiness and advisee analytics.
+            </p>
+            <div className="pt-2 flex flex-wrap items-center justify-center gap-3">
+              <Link href="/login?callbackUrl=/counselor" className="btn-primary text-xs px-5 py-2.5 inline-flex items-center gap-1.5">
+                <span>Sign In as Counselor</span>
+                <ArrowRight className="w-3.5 h-3.5" />
+              </Link>
+            </div>
+          </div>
+        ) : (
+          <>
 
         {/* Charts Section: Distribution Histogram & Most Common Gaps */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -433,6 +465,8 @@ export default function CounselorPage() {
             )}
           </div>
         </div>
+          </>
+        )}
       </main>
     </div>
   );
